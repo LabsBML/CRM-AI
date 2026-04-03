@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lead Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    {% load custom_filters %}
+    <style>
+        :root { --primary: #2563eb; --sidebar-bg: #0f172a; --bg: #f8fafc; --border: #e2e8f0; --success: #10b981; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); overflow: hidden; }
+        
+        /* Left Sidebar */
+        .sidebar { width: 380px; background: var(--sidebar-bg); color: white; display: flex; flex-direction: column; overflow-y: auto; border-right: 1px solid var(--border); }
+        .sidebar-header { padding: 30px; border-bottom: 1px solid #1e293b; }
+        .data-section { padding: 20px 30px; }
+        .data-group { margin-bottom: 20px; }
+        .label { font-size: 10px; text-transform: uppercase; color: #94a3b8; font-weight: 800; letter-spacing: 0.05em; }
+        .val { font-size: 14px; color: #f1f5f9; margin-top: 4px; word-break: break-word; }
+        
+        /* Remark Box */
+        .remark-box { 
+            width: 100%; background: #1e293b; border: 1px solid #334155; border-radius: 8px; 
+            color: #f1f5f9; padding: 12px; font-family: inherit; font-size: 13px; resize: vertical; margin-top: 8px;
+        }
+        .remark-box:focus { outline: 2px solid var(--primary); background: #111827; }
+
+        /* Main Area */
+        .main { flex: 1; overflow-y: auto; padding: 40px; }
+        .composer-card { background: white; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 30px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .composer-header { padding: 20px 25px; background: #fcfcfc; border-bottom: 1px solid var(--border); }
+        
+        .row { display: flex; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
+        .row:last-child { border-bottom: none; }
+        .row label { width: 80px; font-size: 13px; color: #64748b; font-weight: 600; }
+        .row input { flex: 1; border: none; font-family: inherit; outline: none; font-size: 14px; color: #1e293b; }
+        
+        .email-editor {
+            width: 100%; min-height: 250px; border: none; padding: 25px;
+            font-family: inherit; font-size: 15px; line-height: 1.6; color: #334155; outline: none; resize: vertical;
+        }
+
+        .composer-footer { padding: 15px 25px; background: #f8fafc; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; align-items: center; gap: 15px; }
+
+        .btn-send { background: var(--primary); color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-send:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+			.status-sent { color: var(--success); font-weight: 700; font-size: 14px; }
+			/* Prevents the 'flooding' and manages height */
+		.email-container { display: flex; flex-direction: column; height: 500px; border: 1px solid var(--border); }
+		.html-editor { 
+			width: 100%; height: 200px; border: none; border-bottom: 1px solid var(--border);
+			font-family: 'Courier New', monospace; font-size: 12px; padding: 10px; background: #2d2d2d; color: #ccc;
+			resize: none;
+		}
+		.preview-frame { width: 100%; flex: 1; border: none; background: white; }
+		.toggle-bar { background: #eee; padding: 5px 10px; font-size: 11px; display: flex; justify-content: space-between; }
+	.rich-editor {
+        width: 100%;
+        min-height: 350px;
+        max-height: 600px;
+        padding: 25px;
+        border: none;
+        background: white;
+        font-family: inherit;
+        font-size: 15px;
+        line-height: 1.6;
+        color: #334155;
+        outline: none;
+        overflow-y: auto;
+        text-align: left !important;
+		white-space: pre-wrap;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+
+		white-space: pre-wrap; 
+		overflow-y: auto;
+        /* CRITICAL: This preserves newlines for plain text */
+        white-space: pre-wrap; 
+        /* Ensures long URLs don't break the layout */
+        word-wrap: break-word; 
+    }
+	
+	.ai-msg {
+        margin-bottom: 20px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        line-height: 1.6;
+        color: #334155;
+        white-space: pre-wrap; 
+    }
+	/* This forces the template tables to ignore the pre-wrap spaces */
+    .rich-editor table, 
+    .rich-editor td, 
+    .rich-editor tr {
+        white-space: normal !important;
+        line-height: normal;
+    }
+	
+	/* Fix for the banner/centering issues */
+    .rich-editor img {
+        max-width: 600px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+    }
+
+    .composer-card { overflow: hidden; }
+    .editor-container { border-top: 1px solid var(--border); background: #fff; }
+    
+    /* Toolbar for basic formatting if you want to add buttons later */
+    .editor-toolbar {
+        background: #f1f5f9;
+        padding: 8px 20px;
+        border-bottom: 1px solid var(--border);
+        font-size: 12px;
+        color: #64748b;
+        display: flex;
+        gap: 15px;
+    }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1 style="margin:0; font-size: 22px; color: #fff;">{{ lead.student_name }}</h1>
+            <p style="margin:5px 0 0 0; font-size: 12px; color: var(--primary); font-weight: 700;">STUDENT PROFILE</p>
+        </div>
+        
+        <div class="data-section">
+            <div class="label">Remark (Enter to save)</div>
+            <textarea id="sidebar-remark" class="remark-box" placeholder="Add a note..." 
+                onkeydown="if(event.key==='Enter' && !event.shiftKey){ updateRemark('{{ lead.id }}'); event.preventDefault(); }">{{ lead.remark }}</textarea>
+            
+            <div style="margin-top: 30px;"></div>
+
+            {% for key, value in lead.items %}
+                {% if key not in "id,role,merged_into,merge_reason,mail_1,mail_2,mail_3,mail_4,mail_5,mail_6,mail_1_content,mail_2_content,mail_3_content,mail_1_parsed,mail_2_parsed,mail_3_parsed,mail_4_parsed,mail_5_parsed,mail_6_parsed,raw_payload,remark" %}
+                <div class="data-group">
+                    <div class="label">{{ key|replace_underscore|title }}</div>
+                    <div class="val">{{ value|default:"None" }}</div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+<div class="main">
+    <div style="margin-bottom: 20px;"><a href="/leads/" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 14px;">&larr; BACK TO DASHBOARD</a></div>
+    
+    {% for i in "123456" %}
+{% with mail_key="mail_"|add:i|add:"_parsed" sent_key="mail_"|add:i|add:"_sent" %}
+<div class="composer-card">
+    <div class="composer-header">
+        <div class="row">
+            <label>To</label>
+            <input type="text" id="to-{{i}}" 
+                value="{% if i in '123' %}{{ lead.parent_email|default:'' }}{% else %}{{ lead.student_email|default:'' }}{% endif %}">
+        </div>
+        <div class="row">
+            <label>CC</label>
+            <input type="text" id="cc-{{i}}" 
+                value="{% if i in '456' %}{{ lead.parent_email|default:'' }}{% endif %}" placeholder="Optional">
+        </div>
+        <div class="row">
+            <label>Subject</label>
+            <input type="text" id="subject-{{i}}" value="{{ lead|get_item:mail_key|get_item:'subject' }}">
+        </div>
+    </div>
+
+    <div class="editor-container">
+        <div id="body-{{i}}" class="rich-editor" contenteditable="true" spellcheck="false">
+            {{ lead|get_item:mail_key|get_item:'body'|safe }}
+        </div>
+    </div>
+
+    <div class="composer-footer">
+        {% if lead|get_item:sent_key == True or lead|get_item:sent_key == "True" %}
+            <span class="status-sent">SENT VIA ZOHO</span>
+        {% else %}
+            <button class="btn-send" onclick="sendMail('{{i}}', '{{lead.id}}')">SEND MAIL {{i}}</button>
+        {% endif %}
+    </div>
+</div>
+{% endwith %}
+{% endfor %}
+</div>
+ 
+    <script>
+    function updateRemark(leadId) {
+        const remark = document.getElementById('sidebar-remark').value;
+        fetch("/leads/remark/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+            body: JSON.stringify({ id: leadId, remark: remark })
+        }).then(r => r.json()).then(data => {
+            if(data.success) { 
+                const box = document.getElementById('sidebar-remark');
+                box.style.borderColor = "var(--success)";
+                setTimeout(() => box.style.borderColor = "#334155", 2000);
+            }
+        });
+    }
+
+    function sendMail(index, leadId) {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerText = "SENDING...";
+
+    const payload = {
+        lead_id: leadId,
+        index: index,
+        to: document.getElementById('to-' + index).value,
+        cc: document.getElementById('cc-' + index).value,
+        subject: document.getElementById('subject-' + index).value,
+        // Capture innerHTML for rich content, not .value
+        body: document.getElementById('body-' + index).innerHTML 
+    };
+
+    fetch("/leads/send-zoho-mail/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+        body: JSON.stringify(payload)
+    }).then(r => r.json()).then(data => {
+        if(data.success) { location.reload(); }
+        else { alert("Error: " + data.error); btn.disabled = false; btn.innerText = "SEND MAIL " + index; }
+    });
+}
+//	function updatePreview(index) {
+//    const html = document.getElementById('body-' + index).value;
+ //   const iframe = document.getElementById('preview-' + index);
+   // const doc = iframe.contentDocument || iframe.contentWindow.document;
+    //doc.open();
+   // doc.write(html);
+    //doc.close();
+//}
+
+// Run on page load for all 6
+//window.onload = function() {
+  //  for(let i=1; i<=6; i++) { updatePreview(i); }
+//};
+// DELETE THESE LINES - They are causing the "reading contentDocument" error
+	function updatePreview(index) {
+		const editor = document.getElementById('body-' + index);
+		if (!editor) return;
+		
+		const html = editor.innerHTML; // Changed from .value
+		const iframe = document.getElementById('preview-' + index);
+		if (iframe) {
+			const doc = iframe.contentDocument || iframe.contentWindow.document;
+			doc.open();
+			doc.write(html);
+			doc.close();
+		}
+	}
+	window.onload = function() {
+   for(let i=1; i<=6; i++) { updatePreview(i); }
+};
+    </script>
+</body>
+</html>

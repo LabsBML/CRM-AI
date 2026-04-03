@@ -1,0 +1,432 @@
+    1  ls
+    2  mkdir -p ~/.ssh
+    3  nano ~/.ssh/authorized_keys
+    4  ls
+    5  ls
+    6  ls
+    7  mkdir CRMAI
+    8  ls
+    9  cd CRMAI/
+   10  python3 -m venv venv
+   11  sudo apt install python3.12-venv
+   12  python3 -m venv venv
+   13  ls
+   14  source venv/bin/activate
+   15  pip install --upgrade pip
+   16  ls
+   17  pip install -r requirements.txt
+   18  ls
+   19  vi .env
+   20  ls
+   21  cd CRMAI/
+   22  source venv/bin/activate
+   23  ls
+   24  cd crmai/
+   25  python manage.py makemigrations
+   26  python manage.py migrate
+   27  python manage.py collectstatic
+   28  python manage.py runserver 0.0.0.0:8000
+   29  python manage.py runserver
+   30  vi ~/CRMAI/crmai/crmai/settings.py
+   31  python manage.py help | grep collect
+   32  vi ~/CRMAI/crmai/crmai/settings.py
+   33  python manage.py collectstatic
+   34  python manage.py runserver
+   35  ss -tulnp | grep 8000
+   36  LISTEN 0 4096 0.0.0.0:8000
+   37  sudo ufw status
+   38  sudo ufw allow 8000
+   39  sudo ufw reload
+   40  python manage.py runserver 0.0.0.0:8000
+   41  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+   42  sudo apt install -y nodejs
+   43  sudo npm install -g n8n
+   44  cd CRMAI/crmai/
+   45  ls
+   46  cd ..
+   47  ls
+   48  source venv/bin/activate
+   49  ls
+   50  cd crmai/
+   51  ls
+   52  n8n
+   53  ls
+   54  n8n
+   55  sudo ufw status
+   56  sudo ufw allow 5678
+   57  sudo ufw reload
+   58  n8n
+   59  set N8N_SECURE_COOKIE=FALSE
+   60  n8n
+   61  export N8N_SECURE_COOKIE=false
+   62  n8n start
+   63  nohup env N8N_SECURE_COOKIE=false n8n start > n8n.log 2>&1 &
+   64  ls
+   65  cd crmai/
+   66  ls
+   67  vi settings.py 
+   68  ls
+   69  cd ..
+   70  ls
+   71  nphup python3 manage.py runserver > crmai.log 2>&1 &
+   72  vi crmai.log 
+   73  ps aux | grep runserver
+   74  kill -9 25316
+   75  ps aux | grep runserver
+   76  kill -9 25318
+   77  nohup python3 manage.py runserver 0.0.0.0:8000 > crmai.log 2>&1 &
+   78  ls
+   79  cd CRMAI/
+   80  source venv/bin/activate
+   81  ls
+   82  cd crmai/
+   83  ls
+   84  vi crmai.log 
+   85  vi n8n.log 
+   86  ps aux | grep n8n
+   87  kill -9 26838
+   88  ss -tulpn | grep 5678
+   89  nohup env N8N_SECURE_COOKIE=false N8N_HOST=0.0.0.0 N8N_PORT=5678 n8n start > n8n.log 2>&1 &
+   90  vi n8n.log 
+   91  cd CRMAI/
+   92  source venv/bin/activate
+   93  curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+   94  echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+   95  sudo apt update && sudo apt install ngrok -y
+   96  cd CRMAI/
+   97  source venv/bin/activate
+   98  ngrok config add-authtoken 38nqQrATDSdbvvksWIaC7ZG7gEa_6ZMeKLTo5GTw268LyPvxL
+   99  ngrok http 5678
+  100  nohup ngrok http 5678 > ngrok.log 2>&1 &
+  101  vi ngrok.log 
+  102  nohup ngrok http 5678 > ngrok.log 2>&1 &
+  103  vi ngrok.log 
+  104  ps aux | grep ngrok
+  105  kill -9 28120 28280
+  106  nohup ngrok http 5678 > ngrok.log 2>&1 &
+  107  vi ngrok.log 
+  108  kill -9 28120 28280
+  109  ps aux | grep ngrok
+  110  cd CRMAI/
+  111  source venv/bin/activate
+  112  cd crmai/
+  113  vi n8n.log 
+  114  ss -tulpn | grep 5678
+  115  sudo npm install -g pm2
+  116  pm2 start n8n --name n8n --interpreter bash -- N8N_SECURE_COOKIE=false N8N_HOST=0.0.0.0 N8N_PORT=5678
+  117  pm2 status
+  118  pm2 logs n8n --lines 50
+  119  pkill -f n8n
+  120  node -v
+  121  pm2 delete n8n
+  122  pm2 save
+  123  pm2 start $(which n8n)   --name n8n   --interpreter $(which node)   -- start
+  124  pm2 set N8N_SECURE_COOKIE false
+  125  pm2 set N8N_HOST 0.0.0.0
+  126  pm2 set N8N_PORT 5678
+  127  pm2 restart n8n
+  128  pm2 status
+  129  ss -tulpn | grep 5678
+  130  pm2 save
+  131  pm2 startup
+  132  pkill ngrok
+  133  nohup ngrok http 5678 > ngrok.log 2>&1 &
+  134  grep -o 'https://[^ ]*ngrok[^ ]*' ngrok.log | head -n 1
+  135  pm2 status
+  136  ss -tulpn | grep 5678
+  137  pm2 delete n8n
+  138  pm2 start $(which n8n)   --name n8n   --interpreter $(which node)   --env N8N_SECURE_COOKIE=false   --env N8N_HOST=0.0.0.0   --env N8N_PORT=5678   -- start
+  139  pm2 describe n8n
+  140  pm2 delete n8n
+  141  pm2 start $(which n8n)   --name n8n   --interpreter $(which node)   --env N8N_SECURE_COOKIE=false   --env N8N_HOST=0.0.0.0   --env N8N_PORT=5678   -- start
+  142  pm2 env 0
+  143  pm2 delete n8n
+  144  vi ecosystem.config.js
+  145  pm2 start ecosystem.config.js
+  146  pm2 describe n8n
+  147  grep -o 'https://[^ ]*ngrok[^ ]*' ngrok.log | head -n 1
+  148  vi ecosystem.config.js
+  149  pm2 delete n8n
+  150  pm2 start ecosystem.config.js
+  151  pkill ngrok
+  152  nohup ngrok http 5678 > ngrok.log 2>&1 &
+  153  ps aux | grep ngrok
+  154  pm2 status && ss -tulpn | grep 5678
+  155  ps aux | grep ngrok
+  156  pkill ngrok
+  157  nohup ngrok http 5678 > ngrok.log 2>&1 &
+  158  vi ngrok.log 
+  159  ps aux | grep ngrok
+  160  kill -9 29735 29763
+  161  nohup ngrok http 5678 > ngrok.log 2>&1 &
+  162  vi ngrok.log 
+  163  ps aux | grep ngrok
+  164  kill -9 29764
+  165  pkill ngrok
+  166  ps aux | grep ngrok
+  167  kill -9 29809
+  168  ps aux | grep ngrok
+  169  kill -9 29816
+  170  nano ecosystem.config.js
+  171  pm2 start ecosystem.config.js
+  172  which ngrok
+  173  nano ecosystem.config.js
+  174  pm2 restart ecosystem.config.js
+  175  pm2 status
+  176  pm2 logs ngrok --lines 50
+  177  curl -s http://127.0.0.1:4040/api/tunnels | grep -o 'https://[^"]*'
+  178  curl http://127.0.0.1:4040
+  179  nano ecosystem.config.js
+  180  pm2 restart n8n
+  181  nano ecosystem.config.js
+  182  pm2 restart n8n
+  183  pm2 restart ecosystem.config.js
+  184  ls
+  185  cd CRMAI/
+  186  source venv/bin/activate
+  187  ls
+  188  history
+  189  ls
+  190  cd crmai/
+  191  ls
+  192  vi crmai.log 
+  193  ps aux | grep runserver
+  194  kill -9 43638 25319 43645
+  195  nohup python manage.py runserver 0.0.0.0:8000 > crmai.log 2>&1 &
+  196  vi crmai.log 
+  197  pip install supabase
+  198  ps aux | grep runserver
+  199  kill -9 43648 43649 43697
+  200  nohup python manage.py runserver 0.0.0.0:8000 > crmai.log 2>&1 &
+  201  ls
+  202  cd CRMAI/
+  203  source venv/bin/activate
+  204  ls
+  205  history
+  206  ps aux | grep runserver
+  207  ls
+  208  cd crmai/
+  209  LS
+  210  ls
+  211  vi crmai.log 
+  212  cd /home/crmai/CRMAI/crmai/leads/templates/registration
+  213  cd leads/templates/registrarion/
+  214  ls
+  215  cd ../
+  216  mv registrarion registration
+  217  ls
+  218  cd registration/
+  219  ls
+  220  cd CRMAI/crmai/
+  221  ls
+  222  cd ..
+  223  ls
+  224  cd crmai/
+  225  ls
+  226  source ../venv/bin/activate
+  227  ps aux | grep runserver
+  228  kill -9 43698 54608 55169
+  229  python manage.py migrate
+  230  python manage.py createsuperuser
+  231  nohup python manage.py runserver 0.0.0.0:8000 > crmai.log 2>&1 &
+  232  M@ileasy2025
+  233  M@ileasy2025M@ileasy2025
+  234  M@ileasy2025
+  235  mkdir app2
+  236  cd app2
+  237  ls
+  238  cd CRMAI/
+  239  ls
+  240  source venv/bin/activate
+  241  ls
+  242  cd crmai/
+  243  ls
+  244  ls
+  245  cd CRMAI/
+  246  ls
+  247  source venv/bin/activate
+  248  ls
+  249  cd crmai/
+  250  ls
+  251  vi crmai.log 
+  252  ls
+  253  cd CRMAI/
+  254  ls
+  255  cd crmai/
+  256  ls
+  257  cd crmai/
+  258  ls
+  259  cd ..
+  260  ls
+  261  source ../venv/bin/activate
+  262  ls
+  263  history 
+  264  kill -9 55190 106333 106435
+  265  nohup python manage.py runserver 0.0.0.0:8000 > crmai.log 2>&1 &
+  266  cd CRMAI/ 
+  267  source venv/bin/activate
+  268  cd crmai/
+  269  ps aux | grep runserver
+  270  kill -9 106437 106666 106756
+  271  nohup python manage.py runserver 0.0.0.0:8000 > crmai.log 2>&1 &
+  272  cd CRMAI/crmai/crmai/
+  273  ls
+  274  cd..
+  275  cd ..
+  276  ls
+  277  vi crmai.log 
+  278  ps aux | grep runserver
+  279  kill -9 127415
+  280  kill -9 127623
+  281  kill -9 127729
+  282  source venv/bin/activate
+  283  cd CRMAI/
+  284  source venv/bin/activate
+  285  nohup python manage.py runserver 0.0.0.0:8000 > crmai.log 2>&1 &
+  286  ls
+  287  ps aux | grep runserver
+  288  kill -9 127748
+  289  cd crmai/
+  290  nohup python manage.py runserver 0.0.0.0:8000 > crmai.log 2>&1 &
+  291  ls
+  292  vi crmai.log 
+  293  ls
+  294  cd CRMAI/
+  295  ls
+  296  cd crmai/
+  297  ls
+  298  source ../venv/bin/activate
+  299  ls
+  300  vi crmai.log 
+  301  ls
+  302  cd CRMAI/
+  303  ls
+  304  cd crmai/
+  305  ls
+  306  vi crmai.log 
+  307  ls
+  308  mkdir supabasebkp
+  309  cd supabasebkp/
+  310  npx supabase db dump --db-url "postgresql://postgres:Ayaan000777q@db.jhpvfhkyoyuqfetdgrzw.supabase.co:5432/postgres" -f roles.sql --role-only
+  311  cd supabasebkp/
+  312  npx supabase db dump --db-url "postgresql://postgres:Ayaan000777q@db.jhpvfhkyoyuqfetdgrzw.supabase.co:5432/postgres" -f roles.sql --role-only
+  313  pg_dump "postgresql://postgres:Ayaan000777q@db.jhpvfhkyoyuqfetdgrzw.supabase.co:5432/postgres" --roles-only > roles.sql
+  314  sudo apt install postgresql-client-common
+  315  pg_dump "postgresql://postgres:Ayaan000777q@db.jhpvfhkyoyuqfetdgrzw.supabase.co:5432/postgres" --roles-only > roles.sql
+  316  sudo apt install postgresql-client-16 -y
+  317  pg_dump "postgresql://postgres:Ayaan000777q@db.jhpvfhkyoyuqfetdgrzw.supabase.co:5432/postgres" --roles-only > roles.sql
+  318  pg_dumpall --address=db.jhpvfhkyoyuqfetdgrzw.supabase.co --port=5432 --username=postgres --globals-only --no-role-passwords > roles.sql
+  319  pg_dumpall --dbname="postgresql://postgres:Ayaan000777q@db.jhpvfhkyoyuqfetdgrzw.supabase.co:5432/postgres" --globals-only --no-role-passwords > roles.sql
+  320  sudo apt install curl ca-certificates -y
+  321  sudo install -d /usr/share/keyrings
+  322  curl -fSsL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /usr/share/keyrings/postgresql.gpg
+  323  echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+  324  sudo apt update
+  325  sudo apt install postgresql-client-17 -y
+  326  pg_dumpall --dbname="postgresql://postgres:Ayaan000777q@db.jhpvfhkyoyuqfetdgrzw.supabase.co:5432/postgres" --globals-only --no-role-passwords > roles.sql
+  327  ls
+  328  pg_dump "postgresql://postgres:Ayaan000777q@db.jhpvfhkyoyuqfetdgrzw.supabase.co:5432/postgres" --schema-only --no-owner --no-privileges > schema.sql
+  329  ls
+  330  pg_dump "postgresql://postgres:Ayaan000777q@db.jhpvfhkyoyuqfetdgrzw.supabase.co:5432/postgres" --data-only --inserts --column-inserts > data.sql
+  331  pg_dump "postgresql://postgres:Ayaan000777q@db.jhpvfhkyoyuqfetdgrzw.supabase.co:5432/postgres" --data-only --inserts --column-inserts --disable-triggers --no-owner --no-privileges > data.sql
+  332  ls
+  333  ls
+  334  sudo apt update && sudo apt install git curl -y
+  335  mkdir self-hosted-supabase && cd self-hosted-supabase
+  336  git clone --depth 1 https://github.com/supabase/supabase
+  337  cd supabase/docker
+  338  cp .example.env .env
+  339  vi .env
+  340  ls
+  341  vi .env.example 
+  342  cd self-hosted-supabase/supabase/docker/
+  343  vi .env
+  344  sudo ufw allow 8000/tcp
+  345  sudo docker compose up -d
+  346  sudo docker ps
+  347  ls -la
+  348  sudo docker compose down --remove-orphans
+  349  sudo docker compose up -d
+  350  ls -la
+  351  sed -i 's/\r$//' .env
+  352  vi .env
+  353  sudo docker compose down --remove-orphans
+  354  sudo docker compose up -d
+  355  sudo systemctl stop postgresql
+  356  sudo systemctl disable postgresql
+  357  sudo docker compose down -v
+  358  sudo docker compose up -d
+  359  sudo docker ps
+  360  sudo systemctl stop postgresql
+  361  sudo systemctl disable postgresql
+  362  sudo docker compose down -v
+  363  sudo chmod -R 777 volumes/db/data
+  364  sudo docker compose up -d
+  365  sudo docker logs supabase-db
+  366  vi .env
+  367  sudo docker compose down -v
+  368  sudo chmod -R 777 volumes/db/data
+  369  sudo docker compose up -d
+  370  sudo docker logs supabase-db
+  371  sudo docker compose down -v && POSTGRES_PASSWORD=Ayaan000777q sudo docker compose up -d
+  372  sudo docker logs supabase-db
+  373  ls
+  374  cd self-hosted-supabase/
+  375  ls
+  376  cd ~/self-hosted-supabase
+  377  supabase db pull
+  378  supabase migration repair --status applied 20260303160054
+  379  supabase db pull
+  380  supabase db push
+  381  supabase db push --local
+  382  sudo docker compose up -d
+  383  cd ~/self-hosted-supabase/supabase/docker
+  384  sudo docker compose up -d
+  385  ls ~/self-hosted-supabase/supabase/migrations
+  386  cat ~/self-hosted-supabase/supabase/migrations/20260303160054_remote_schema.sql | sudo docker exec -i supabase-db psql -U postgres -d postgres
+  387  cat ~/self-hosted-supabase/supabase/migrations/20260303160542_remote_schema.sql | sudo docker exec -i supabase-db psql -U postgres -d postgres
+  388  cat ~/supabasebkp/data.sql | sudo docker exec -i supabase-db psql -U postgres -d postgres
+  389  sudo docker exec -it supabase-db psql -U postgres -d postgres -c "SELECT count(*) FROM ingestion_events;"
+  390  cd self-hosted-supabase/
+  391  cd supabase/docker/
+  392  sudo docker compose down -v && POSTGRES_PASSWORD=Ayaan000777q sudo docker compose up -d
+  393  cp .env.example .env
+  394  vi .env
+  395  sudo docker compose down -v && POSTGRES_PASSWORD=Ayaan000777q sudo docker compose up -d
+  396  nano .env
+  397  sudo systemctl stop postgresql
+  398  vi .env
+  399  cat ~/supabasebkp/data.sql | sudo docker exec -i supabase-db psql -U postgres -d postgres
+  400  sudo docker exec -it supabase-db psql -U postgres -c "ALTER USER postgres WITH SUPERUSER;"
+  401  sudo docker exec -it supabase-db psql -U supabase_admin -d postgres -c "ALTER ROLE postgres SUPERUSER;"
+  402  cat ~/supabasebkp/data.sql | sudo docker exec -i supabase-db psql -U postgres -d postgres --clean --if-exists
+  403  cat ~/supabasebkp/data.sql | sudo docker exec -i supabase-db psql -U postgres -d postgres
+  404  cat ~/supabasebkp/data.sql | sudo docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=off
+  405  sudo docker exec -it supabase-db psql -U supabase_admin -d postgres -c "GRANT ALL ON SCHEMA public TO postgres; GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres; ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO postgres;"
+  406  cat ~/supabasebkp/data.sql | sudo docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=off
+  407  supabase login
+  408  cd ../..
+  409  cd ..
+  410  supabase login
+  411  sudo npm install -g supabase
+  412  sudo /bin/sh -c "$(curl -fsSL https://raw.githubusercontent.com/supabase/cli/main/install.sh)"
+  413  curl -L -o supabase.tar.gz https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz
+  414  tar -xvf supabase.tar.gz
+  415  sudo mv supabase /usr/local/bin/
+  416  rm supabase.tar.gz
+  417  supabase --version
+  418  cd ~/self-hosted-supabase
+  419  supabase init
+  420  export SUPABASE_ACCESS_TOKEN=sbp_1f9330f8c4e42686d80e0df1d21bc6bb9379eb2e
+  421  supabase link --project-ref jhpvfhkyoyuqfetdgrzw
+  422  supabase db pull
+  423  sudo groupadd docker
+  424  sudo usermod -aG docker crmai
+  425  newgrp docker
+  426  ls
+  427  cd CRMAI/crmai/crmai/
+  428  ls
+  429  cd ..
+  430  ls
+  431  history
+  432  history > command_history.txt

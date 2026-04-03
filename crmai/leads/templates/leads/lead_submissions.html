@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>MailEasy Lead Tracker</title>
+  
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* =========================
+    Design Tokens
+========================= */
+:root {
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --primary: #2563eb;
+  --primary-dark: #1e40af;
+  --radius: 12px;
+}
+
+/* =========================
+    Global Reset & Layout
+========================= */
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  padding: 16px 10px;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 1024px) {
+  h1 { font-size: 24px; }
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .filters { flex-direction: column; }
+  .filters input { width: 100%; }
+}
+
+.main-content {
+  flex: 1 0 auto;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* =========================
+    Header & Typography
+========================= */
+h1 {
+  font-size: 30px;
+  font-weight: 800;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.025em;
+}
+
+.subtitle {
+  font-size: 15px;
+  color: var(--muted);
+  margin-bottom: 32px;
+}
+
+/* =========================
+    Table Container (Card)
+========================= */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================
+    Filters & Toolbar
+========================= */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.filter-form {
+  flex: 1;
+  width: 100%;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filters input {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  flex: 1;
+  min-width: 120px;
+}
+
+.filters button[type="submit"] {
+  padding: 10px 20px;
+  background: var(--text); 
+}
+
+/* =========================
+    Responsive Table
+========================= */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  min-width: 1800px; /* Increased to prevent squishing */
+}
+
+th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+  padding: 12px;
+  border-bottom: 2px solid var(--border);
+  background: #fcfcfd;
+  white-space: nowrap;
+}
+
+td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  vertical-align: top;
+  color: var(--text);
+  word-wrap: break-word; /* Prevents text overlap */
+  overflow: hidden;
+}
+
+/* Unified Select Styling */
+.app-select {
+    padding: 2px 6px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    background-color: #f1f5f9;
+    cursor: pointer;
+    transition: 0.2s;
+    height: 24px;
+	width:auto;
+	min-width: 40px;       /* Keeps it consistent for short words */
+    max-width: 90px;
+}
+.app-select:focus { outline: 2px solid var(--primary); border-color: transparent; }
+
+/* Status Specific Colors */
+.status-inquired { background-color: #e2e8f0; color: #475569; }
+.status-process { background-color: #fef3c7; color: #92400e; }
+.status-applied { background-color: #dcfce7; color: #166534; }
+.status-closed { background-color: #166534; color: white; }
+.status-declined { background-color: #fee2e2; color: #991b1b; }
+
+tbody tr:not(.payload-row):hover { background-color: #f9fafb; }
+
+/* Payload & UI Elements */
+.payload-row { display: none; background: #0f172a; }
+.payload-container { padding: 24px; white-space: normal; } 
+.nav-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 4px 10px; cursor: pointer; }
+.payload-box { margin: 0; padding: 20px; color: #cbd5e1; font-family: monospace; font-size: 13px; background: #1e293b; border-radius: 8px; white-space: pre-wrap; word-break: break-all; }
+.json-key { color: #7dd3fc; } .json-string { color: #86efac; } .json-number { color: #fca5a5; } .json-boolean { color: #fde68a; }
+
+.badge { background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.link { color: var(--primary); cursor: pointer; font-size: 13px; font-weight: 600; display: block; margin-top: 2px;}
+.link:hover { text-decoration: underline; }
+
+button { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;}
+button:hover { background: var(--primary-dark); }
+button.secondary { background: #f1f5f9; color: var(--text); border: 1px solid var(--border); text-decoration: none; display: inline-flex; align-items: center; justify-content: center;}
+
+/* Date Styling */
+.date-stack { display: flex; flex-direction: column; gap: 2px; }
+.date-main { font-weight: 600; font-size: 13px; color: var(--text); }
+.date-sub { font-size: 11px; color: var(--muted); }
+
+/* Remark Styling */
+.remark-box {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px;
+    font-size: 13px;
+    resize: none;
+    min-height: 34px;
+}
+.remark-box:focus { outline: 2px solid var(--primary); border-color: transparent; }
+
+/* Location Input */
+.location-input {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 12px;
+}
+.btn-delete-icon {
+    background: transparent;
+    border: 1px solid #fee2e2;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-delete-icon:hover {
+    background: #fef2f2;
+    border-color: #ef4444;
+}
+.action-menu.active .action-dropdown {
+    display: block;
+}
+.action-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;           /* Align to the right of the button */
+    top: 100%;          /* Appear directly below the button */
+    background: white;
+    min-width: 140px;   /* Give it enough room for the text */
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    z-index: 9999;      /* Ensure it stays above all other rows */
+}
+footer { text-align: center; padding: 40px 0; color: var(--muted); font-size: 13px; margin-top: 40px; }
+
+/* Action Menu Styles */
+.action-menu { position: relative; display: inline-block; overflow: visible !important; }
+.sandwich-btn {
+    background: none;
+    color: var(--muted);
+    border: none;
+    padding: 4px 8px;
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+.sandwich-btn:hover { background: #f1f5f9; color: var(--text); }
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background-color: white;
+    min-width: 140px;
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.15);
+    z-index: 99;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+.dropdown-content a {
+    color: var(--text);
+    padding: 10px 14px;
+    text-decoration: none;
+    display: block;
+    font-size: 13px;
+}
+.dropdown-content a:hover { background-color: #f8fafc; }
+.dropdown-content a.delete-opt { color: #ef4444; }
+.show { display: block; }
+
+.modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 100; }
+.modal-content { background: white; border-radius: 16px; padding: 32px; width: 90%; max-width: 480px; }
+
+.page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 35px;
+    height: 35px;
+    padding: 0 8px;
+    text-decoration: none;
+    color: var(--text);
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+.page-link:hover { background: #f1f5f9; }
+.page-link.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+.page-link.disabled {
+    color: var(--muted);
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.intent-select {
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+}
+
+.intent-high { background-color: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+.intent-normal { background-color: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
+.intent-low { background-color: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
+
+/* Color styling for the Call Dropdown */
+.status-applied { background-color: #dcfce7 !important; color: #166534 !important; } /* Green for Yes */
+.status-declined { background-color: #fee2e2 !important; color: #991b1b !important; } /* Red for No */
+</style>
+
+<script>
+  const payloadState = {};
+
+  function togglePayload(id) {
+    const row = document.getElementById(id);
+    if (!row) return;
+    const index = id.replace("p", "");
+    const script = row.querySelector("script[type='application/json']");
+
+    if (row.style.display === "table-row") {
+      row.style.display = "none";
+      return;
+    }
+
+    if (!payloadState[index]) {
+      const fullJSON = JSON.parse(script.textContent);
+      const list = (fullJSON && fullJSON.payloads) ? fullJSON.payloads : [fullJSON];
+      payloadState[index] = { data: list, current: 0 };
+      renderPayloadContent(index);
+    }
+    row.style.display = "table-row";
+  }
+
+  function renderPayloadContent(rowIndex) {
+    const state = payloadState[rowIndex];
+    const currentItem = state.data[state.current];
+    const box = document.getElementById("payload-box-" + rowIndex);
+    const nav = document.getElementById("nav-" + rowIndex);
+    const counter = document.getElementById("count-" + rowIndex);
+    const contentToDisplay = currentItem.payload ? currentItem.payload : currentItem;
+    box.innerHTML = syntaxHighlight(contentToDisplay);
+
+    if (state.data.length > 1) {
+      nav.style.display = "flex";
+      counter.innerText = `Payload ${state.current + 1} of ${state.data.length}`;
+    } else { nav.style.display = "none"; }
+  }
+
+  function navigatePayload(rowIndex, direction) {
+    const state = payloadState[rowIndex];
+    const nextIdx = state.current + direction;
+    if (nextIdx >= 0 && nextIdx < state.data.length) {
+      state.current = nextIdx;
+      renderPayloadContent(rowIndex);
+    }
+  }
+
+  function syntaxHighlight(json) {
+    if (!json) return "";
+    json = JSON.stringify(json, null, 2);
+    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(:)?|\b(true|false|null)\b|\b\d+\b)/g, function (match) {
+        let cls = "json-number";
+        if (/^"/.test(match)) { cls = /:$/.test(match) ? "json-key" : "json-string"; }
+        else if (/true|false/.test(match)) { cls = "json-boolean"; }
+        return '<span class="' + cls + '">' + match + '</span>';
+    });
+  }
+
+  function openMergeModal(email) {
+    document.getElementById('mergeEmail').innerText = email;
+    document.getElementById('mergeModal').style.display = 'flex';
+  }
+  function closeModal() { document.getElementById('mergeModal').style.display = 'none'; }
+</script>
+
+
+</head>
+
+<body>
+
+<div class="main-content">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+    <div>
+        <h1 style="margin: 0;">MailEasy Lead Tracker</h1>
+        <div class="subtitle" style="margin-bottom: 0;">Unified view of all ingested leads across platforms</div>
+    </div>
+    <button onclick="window.location='/insights/'" style="background: var(--primary); white-space: nowrap;">
+        View Student Dashboard &rarr;
+    </button>
+</div>
+  <div class="card">
+    <div class="toolbar">
+      <form method="GET" class="filter-form">
+        <div class="filters">
+            <input type="text" name="email" placeholder="Email" value="{{ filters.email }}">
+            <input type="text" name="phone" placeholder="Phone" value="{{ filters.phone }}">
+            <input type="text" name="student_name" placeholder="Student Name" value="{{ filters.student_name }}">
+            <input type="text" name="parent_name" placeholder="Parent Name" value="{{ filters.parent_name }}">
+            <input type="text" name="source" placeholder="Source" value="{{ filters.source }}">
+            <input type="text" name="event" placeholder="Event" value="{{ filters.event }}">
+            <button type="submit">Filter</button>
+            <a href="?" class="secondary" style="padding: 10px 14px; text-decoration:none;">Clear</a>
+        </div>
+      </form>
+      <button id="mergeActionBtn" style="white-space:nowrap;">Merge Selected</button>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <colgroup>
+            <col style="width: 45px;">  <col style="width: 250px;"> <col style="width: 140px;"> <col style="width: 120px;"> <col style="width: 120px;"> <col style="width: 180px;"> <col style="width: 180px;"> <col style="width: 110px;"> <col style="width: 100px;"> <col style="width: 100px;"> <col style="width: 50px;">  <col style="width: 120px;"> <col style="width: 120px;"> <col style="width: 100px;"> <col style="width: 200px;"> <col style="width: 100px;"></colgroup>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Student</th>
+            <th>Parent</th>
+            <th>Source</th>
+            <th>Event</th>
+            <th>Status</th>
+            <th>Submitted</th>
+            <th>Actions</th>
+            <th></th>
+            <th>City</th>
+            <th>State</th>
+            <th>Intent</th>
+            <th>Remark</th>
+            <th>Call Made?</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% load json_extras %}
+          {% for lead in leads %}
+          <tr data-id="{{ lead.id }}" onclick="window.location.href='/leads/profile/{{ lead.id }}/'" style="cursor: pointer;">
+            <td onclick="event.stopPropagation();"><input type="checkbox" style="width:16px; height:16px; cursor:pointer;"></td>
+            
+            <td title="{{ lead.primary_email }}">
+                <div style="display: flex; align-items: center;">
+                    <select class="app-select" data-id="{{ lead.id }}" onchange="updateEmailSource(this)" onclick="event.stopPropagation();" style="margin-right: 6px;">
+                        <option value="UK" {% if lead.primary_email != lead.student_email and lead.primary_email != lead.parent_email %}selected{% endif %}>UK</option>
+                        <option value="S" {% if lead.primary_email == lead.student_email and lead.student_email %}selected{% endif %}>S</option>
+                        <option value="P" {% if lead.primary_email == lead.parent_email and lead.parent_email %}selected{% endif %}>P</option>
+                    </select>
+                    <span class="email-text">{{ lead.primary_email|default:"-" }}</span>
+                </div>
+            </td>
+            
+            <td title="{{ lead.primary_phone|json_load|join:', ' }}">
+              {% with phones=lead.primary_phone|json_load %}
+                {% if phones %}{{ phones.0 }}{% if phones|length > 1 %} <span style="color:var(--muted); font-size:11px;">(+{{ phones|length|add:"-1" }})</span>{% endif %}{% else %}-{% endif %}
+              {% endwith %}
+            </td>
+            
+            <td title="{{ lead.student_name }}">{{ lead.student_name|default:"-" }}</td>
+            <td title="{{ lead.parent_name }}">{{ lead.parent_name|default:"-" }}</td>
+            
+            <td title="{{ lead.source_platform|json_load|join:', ' }}">
+              {% with platforms=lead.source_platform|json_load %}
+                {% if platforms %}{{ platforms|join:", " }}{% else %}-{% endif %}
+              {% endwith %}
+            </td>
+            
+            <td title="{{ lead.source_event|json_load|join:', ' }}">
+              {% with events=lead.source_event|json_load %}
+                {% if events %}{{ events|join:" · " }}{% else %}-{% endif %}
+              {% endwith %}
+            </td>
+            
+            <td>
+			<select class="app-select 
+				{% if lead.status == 'In process' %}status-process
+				{% elif lead.status == 'Applied' or lead.status == 'Accepted' %}status-applied
+				{% elif lead.status == 'Closed' %}status-closed
+				{% elif lead.status == 'Declined' or lead.status == 'Rejected' %}status-declined
+				{% else %}status-inquired{% endif %}" 
+				onchange="updateStatus(this, '{{ lead.id }}')" onclick="event.stopPropagation()">
+				
+				<option value="Inquired" {% if lead.status == 'Inquired' %}selected{% endif %}>Inquired</option>
+				<option value="In process" {% if lead.status == 'In process' %}selected{% endif %}>In process</option>
+				<option value="Applied" {% if lead.status == 'Applied' %}selected{% endif %}>Applied</option>
+				<option value="Selection mail 1" {% if lead.status == 'Selection mail 1' %}selected{% endif %}>Selection mail 1</option>
+				<option value="Selection mail 2" {% if lead.status == 'Selection mail 2' %}selected{% endif %}>Selection mail 2</option>
+				<option value="Selection mail 3" {% if lead.status == 'Selection mail 3' %}selected{% endif %}>Selection mail 3</option>
+				<option value="Accepted" {% if lead.status == 'Accepted' %}selected{% endif %}>Accepted</option>
+				<option value="Want it later" {% if lead.status == 'Want it later' %}selected{% endif %}>Want it later</option>
+				<option value="Declined" {% if lead.status == 'Declined' %}selected{% endif %}>Declined</option>
+				<option value="Rejected" {% if lead.status == 'Rejected' %}selected{% endif %}>Rejected</option>
+				<option value="Closed" {% if lead.status == 'Closed' %}selected{% endif %}>Closed</option>
+			</select>
+		</td>
+            
+            <td>
+                <div class="date-stack">
+                    <span class="date-main">{{ lead.submitted_at|slice:":10" }}</span>
+                    <span class="date-sub">{{ lead.submitted_at|slice:"11:16" }}</span>
+                </div>
+            </td>
+            
+            <td>
+              {% if lead.is_redundant %}
+                <button onclick="event.stopPropagation(); showHistory('{{ lead.primary_email }}')" 
+                    style="background: #f59e0b; color: white; border: none; border-radius: 4px; font-weight: bold; font-size: 10px; padding: 4px 8px; margin-bottom: 5px; width: 100%; cursor: pointer;"
+                    title="Found {{ lead.dup_count }} related records">DUPLICATE</button>
+              {% endif %}
+              {% if lead.merged_into %}<span class="badge">Merged</span>{% endif %}
+              <span class="link" onclick="event.stopPropagation(); togglePayload('p{{ forloop.counter0 }}')" >Payload</span>
+            </td>
+			<td onclick="event.stopPropagation();" style="text-align: center;">
+				<button 
+					onclick="confirmDelete('{{ lead.id }}')" 
+					class="btn-delete-icon" 
+					title="Delete Record">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="color: #ef4444;">
+					  <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+					  <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+					</svg>
+				</button>
+			</td>
+            <td>
+                <input type="text" value="{{ lead.city|default:'' }}" 
+                   placeholder="City" class="location-input"
+				   onclick="event.stopPropagation();"
+                   onblur="saveLocation('{{ lead.id }}', this.value, null)">
+            </td>
+            <td>
+                <input type="text" value="{{ lead.state|default:'' }}" 
+                   placeholder="State" class="location-input"
+				   onclick="event.stopPropagation();"				   
+                   onblur="saveLocation('{{ lead.id }}', null, this.value)">
+            </td>
+            <td>
+                <select class="intent-select {% if lead.intent_level == 'High' %}intent-high{% elif lead.intent_level == 'Low' %}intent-low{% else %}intent-normal{% endif %}" 
+                        onclick="event.stopPropagation();"
+						onchange="updateIntent(this, '{{ lead.id }}')">
+                    <option value="High" {% if lead.intent_level == 'High' %}selected{% endif %}>High</option>
+                    <option value="Normal" {% if lead.intent_level == 'Normal' or not lead.intent_level %}selected{% endif %}>Normal</option>
+                    <option value="Low" {% if lead.intent_level == 'Low' %}selected{% endif %}>Low</option>
+                </select>
+            </td>
+            
+            <td>
+                <textarea onclick="event.stopPropagation()" class="remark-box" data-id="{{ lead.id }}" placeholder="Remark..." rows="1">{{ lead.remark|default_if_none:"" }}</textarea>
+            </td>
+			
+			<td>
+			<select class="app-select {% if lead.call_status == 'Yes' %}status-applied{% else %}status-declined{% endif %}" 
+					onchange="updateStatus(this, '{{ lead.id }}')" onclick="event.stopPropagation()">
+				<option value="No" {% if lead.call_status == 'No' %}selected{% endif %}>No</option>
+				<option value="Yes" {% if lead.call_status == 'Yes' %}selected{% endif %}>Yes</option>
+			</select>
+		</td>
+			
+          </tr>
+            
+          <tr id="p{{ forloop.counter0 }}" class="payload-row">
+            <td colspan="15">
+              <div class="payload-container">
+                <div class="payload-nav" id="nav-{{ forloop.counter0 }}" style="display:none;">
+                  <button class="nav-btn" onclick="navigatePayload('{{ forloop.counter0 }}', -1)">&lt;</button>
+                  <span class="nav-counter" id="count-{{ forloop.counter0 }}"></span>
+                  <button class="nav-btn" onclick="navigatePayload('{{ forloop.counter0 }}', 1)">&gt;</button>
+                </div>
+                <pre class="payload-box" id="payload-box-{{ forloop.counter0 }}"></pre>
+                {{ lead.raw_payload|json_script:"payload_json" }}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination" style="margin-top: 32px; display: flex; justify-content: center; align-items: center; gap: 6px;">
+            <a href="?page={{ page|add:"-1" }}&email={{ filters.email }}&phone={{ filters.phone }}&student_name={{ filters.student_name }}&parent_name={{ filters.parent_name }}&source={{ filters.source }}&event={{ filters.event }}"
+               class="page-link {% if not has_prev %}disabled{% endif %}">
+               &laquo; Prev
+            </a>
+
+            {% if page > 3 %}
+                <a href="?page=1&..." class="page-link">1</a>
+                <span style="color: var(--muted)">...</span>
+            {% endif %}
+
+            {% for p in page_range %}
+                <a href="?page={{ p }}&email={{ filters.email }}&phone={{ filters.phone }}&student_name={{ filters.student_name }}&parent_name={{ filters.parent_name }}&source={{ filters.source }}&event={{ filters.event }}"
+                   class="page-link {% if p == page %}active{% endif %}">
+                   {{ p }}
+                </a>
+            {% endfor %}
+
+            {% if page < total_pages|add:"-2" %}
+                <span style="color: var(--muted)">...</span>
+                <a href="?page={{ total_pages }}&..." class="page-link">{{ total_pages }}</a>
+            {% endif %}
+
+            <a href="?page={{ page|add:"1" }}&email={{ filters.email }}&phone={{ filters.phone }}&student_name={{ filters.student_name }}&parent_name={{ filters.parent_name }}&source={{ filters.source }}&event={{ filters.event }}"
+               class="page-link {% if not has_next %}disabled{% endif %}">
+               Next &raquo;
+            </a>
+        </div>
+  </div>
+</div>
+
+<footer>© 2026 <strong>MailEasy</strong>. All rights reserved.</footer>
+
+<script>
+  // Same logic as provided in your file
+  document.getElementById("mergeActionBtn").addEventListener("click", function (e) {
+    e.preventDefault(); 
+    const checked = document.querySelectorAll("tbody input[type='checkbox']:checked");
+    if (checked.length < 2) { alert("Select at least two leads to merge."); return; }
+    const ids = Array.from(checked).map(cb => cb.closest("tr").dataset.id);
+
+    fetch("/leads/merge/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+      body: JSON.stringify({ submission_ids: ids })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) { alert(data.error); } 
+      else { alert("Merge request sent"); window.location.reload(); }
+    });
+  });
+
+  document.querySelectorAll(".remark-box").forEach(box => {
+    box.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        const id = this.dataset.id;
+        const remark = this.value;
+        fetch("/leads/remark/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+          body: JSON.stringify({ id, remark })
+        })
+        .then(res => {
+          if (!res.ok) throw new Error("Failed");
+          this.style.borderColor = "#22c55e"; 
+          setTimeout(() => this.style.borderColor = "", 1000);
+        });
+      }
+    });
+  });
+
+function updateEmailSource(selectElement) {
+    const id = selectElement.dataset.id;
+    const type = selectElement.value;
+    const emailSpan = selectElement.nextElementSibling;
+    const currentEmail = emailSpan.innerText.trim();
+    selectElement.disabled = true;
+    document.body.style.cursor = 'wait';
+
+    fetch("/leads/update-email-source/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+      body: JSON.stringify({ id: id, type: type, email: currentEmail })
+    })
+    .then(res => res.json())
+    .then(data => {
+      selectElement.disabled = false;
+      document.body.style.cursor = 'default';
+      if (data.success && data.new_email) { emailSpan.innerText = data.new_email; }
+    });
+}
+
+function updateStatus(selectElement, leadId) {
+    const newStatus = selectElement.value;
+    
+    // 1. Immediate UI Feedback (Color change)
+    selectElement.className = 'app-select'; 
+    if (newStatus === 'In process' || newStatus.includes('Selection mail')) selectElement.classList.add('status-process');
+    else if (newStatus === 'Applied' || newStatus === 'Accepted') selectElement.classList.add('status-applied');
+    else if (newStatus === 'Closed') selectElement.classList.add('status-closed');
+    else if (newStatus === 'Declined' || newStatus === 'Rejected') selectElement.classList.add('status-declined');
+    else selectElement.classList.add('status-inquired');
+
+    // 2. Save to Database
+    fetch("/leads/update-status/", {
+        method: "POST",
+        headers: { 
+            "Content-Type": "application/json", 
+            "X-CSRFToken": getCookie('csrftoken') 
+        },
+        body: JSON.stringify({ 
+            id: leadId, 
+            status: newStatus 
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // FORCE REFRESH: 
+            // If the status is 'Closed', we reload to let the SQL View 
+            // recalculate and hide the now-merged duplicates.
+            if (newStatus === 'Closed') {
+                window.location.reload();
+            }
+        } else {
+            alert("Failed to save status: " + data.error);
+        }
+    })
+    .catch(error => console.error("Error updating status:", error));
+}
+function toggleMenu(event, menuId) {
+    event.stopPropagation();
+    document.querySelectorAll('.dropdown-content').forEach(m => {
+        if(m.id !== menuId) m.classList.remove('show');
+    });
+    document.getElementById(menuId).classList.toggle("show");
+}
+
+window.onclick = function(event) {
+    if (!event.target.matches('.sandwich-btn')) {
+        document.querySelectorAll('.dropdown-content').forEach(m => m.classList.remove('show'));
+    }
+}
+
+
+function confirmDelete(leadId) {
+    if (confirm("Are you sure you want to delete this record?")) {
+        // Find the row immediately
+        const row = document.querySelector(`tr[data-id="${leadId}"]`);
+        
+        fetch("/leads/delete/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+            body: JSON.stringify({ id: leadId })
+        }).then(res => res.json()).then(data => {
+            if (data.success) {
+                // 1. Remove the onclick so it can't trigger a redirect anymore
+                row.onclick = null; 
+                // 2. Animate and remove
+                row.style.opacity = '0';
+                setTimeout(() => row.remove(), 300);
+            }
+        });
+    }
+}
+
+function showHistory(email) {
+    if (!email || email === '-') return;
+    window.location.href = `?email=${encodeURIComponent(email)}`;
+}
+
+function updateIntent(selectElement, leadId) {
+    const newIntent = selectElement.value;
+    
+    // Immediate UI feedback
+    selectElement.classList.remove('intent-high', 'intent-normal', 'intent-low');
+    if (newIntent === 'High') selectElement.classList.add('intent-high');
+    else if (newIntent === 'Low') selectElement.classList.add('intent-low');
+    else selectElement.classList.add('intent-normal');
+
+    fetch('/leads/update-intent/', {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken') // Vital for Django
+        },
+        body: JSON.stringify({ 
+            id: leadId, 
+            intent: newIntent 
+        })
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Server error');
+        return response.json();
+    })
+    .then(data => {
+        if (!data.success) alert('Error: ' + data.error);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to save intent. Check if the URL /leads/update-intent/ exists.');
+    });
+}
+
+// Make sure this helper is present to grab the CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+
+function saveLocation(leadId, city, state) {
+    const payload = { id: leadId };
+    if (city !== null) payload.city = city;
+    if (state !== null) payload.state = state;
+
+    fetch("/leads/update-location/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie('csrftoken') },
+        body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) console.error("Update failed:", data.error);
+    });
+}
+
+function updateCallStatus(selectElement, leadId) {
+    const newVal = selectElement.value;
+    
+    // UI Update
+    selectElement.className = 'app-select';
+    if (newVal === 'Yes') selectElement.classList.add('status-applied');
+    else selectElement.classList.add('status-declined');
+
+    fetch("/leads/update-call/", {
+        method: "POST",
+        headers: { 
+            "Content-Type": "application/json", 
+            "X-CSRFToken": getCookie('csrftoken') 
+        },
+        body: JSON.stringify({ id: leadId, call_status: newVal })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) alert("Error: " + data.error);
+    });
+}
+</script>
+
+<div class="modal" id="mergeModal">
+  <div class="modal-content">
+    <h3 style="margin-top:0;">Merge Preview</h3>
+    <strong id="mergeEmail"></strong><br><br>
+    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+      <button class="secondary" onclick="closeModal()">Cancel</button>
+      <button>Confirm Merge</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

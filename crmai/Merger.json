@@ -1,0 +1,334 @@
+{
+  "name": "Merger",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "244d51ed-9394-475e-a566-37fc707cbe67",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -928,
+        -160
+      ],
+      "id": "2963accd-ccb5-4991-928d-c87a043b70bc",
+      "name": "Webhook",
+      "webhookId": "244d51ed-9394-475e-a566-37fc707cbe67"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "877361e2-122e-437f-8042-f471fcd3cda7",
+              "name": "body.submission_ids",
+              "value": "={{ $json.body.submission_ids }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -720,
+        -160
+      ],
+      "id": "a7c3db26-ecd1-49ac-8d94-551b088505c9",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "url": "=https://jhpvfhkyoyuqfetdgrzw.supabase.co/rest/v1/lead_submissions",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "id",
+              "value": "=in.({{ $json.body.submission_ids .join(',') }})"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": ""
+            },
+            {
+              "name": "Authorization",
+              "value": "=\"Bearer {{ \"\" }}\""
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -512,
+        0
+      ],
+      "id": "79d14aed-f675-420a-a3e5-78cfce00c724",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "// All selected submissions from Supabase\nconst submissions = items.map(i => i.json);\n\n// ---- Safety checks ----\nif (!Array.isArray(submissions) || submissions.length < 2) {\n  throw new Error(\"Need at least 2 submissions to merge\");\n}\n\n// Ensure required fields exist\nsubmissions.forEach(s => {\n  if (!s.id || !s.submitted_at) {\n    throw new Error(\"Each submission must have id and submitted_at\");\n  }\n});\n\n// ---- Sort by submitted_at (oldest first) ----\nsubmissions.sort(\n  (a, b) => new Date(a.submitted_at) - new Date(b.submitted_at)\n);\n\n// ---- Canonical record ----\nconst canonical = submissions[0];\nconst canonicalId = canonical.id;\n\n// ---- Helpers ----\nconst uniq = arr =>\n  [...new Set(arr.filter(v => v !== null && v !== \"\"))];\n\n// ---- Merge logic ----\nconst mergedPhones = uniq(\n  submissions.map(s => s.primary_phone)\n);\n\nconst mergedSources = uniq(\n  submissions.map(s => s.source_platform)\n);\n\nconst mergedEvents = uniq(\n  submissions.map(s => s.source_event)\n);\n\nconst mergedPayloads = submissions\n  .map(s => s.raw_payload)\n  .filter(Boolean);\n\n// ---- Output items ----\nconst output = [];\n\n// 1️⃣ Canonical UPDATE payload\noutput.push({\n  json: {\n    type: \"canonical\",\n    canonical_id: canonicalId,\n\n    primary_phone: mergedPhones,\n    source_platform: mergedSources,\n    source_event: mergedEvents,\n\n    submitted_at: canonical.submitted_at,\n    raw_payload: {\n      payloads: mergedPayloads\n    },\n\n    merge_reason: \"manual_merge_ui\"\n  }\n});\n\n// 2️⃣ Child rows → merged_into\nsubmissions.slice(1).forEach(s => {\n  output.push({\n    json: {\n      type: \"child\",\n      id: s.id,\n      merged_into: canonicalId\n    }\n  });\n});\n\nreturn output;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        0
+      ],
+      "id": "4d884b98-4334-43c7-b437-11cb75b0cf95",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3ce0af55-be1d-4b5b-90d2-9b5de07dc33a",
+              "leftValue": "={{ $json.type }}",
+              "rightValue": "canonical",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -112,
+        16
+      ],
+      "id": "99138436-d48a-4676-9952-0df028b159cc",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "lead_submissions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('If').item.json.canonical_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "id",
+              "fieldValue": "={{ $('If').item.json.canonical_id }}"
+            },
+            {
+              "fieldId": "primary_phone",
+              "fieldValue": "={{ $json.primary_phone }}"
+            },
+            {
+              "fieldId": "source_platform",
+              "fieldValue": "={{ $json.source_platform }}"
+            },
+            {
+              "fieldId": "source_event",
+              "fieldValue": "={{ $json.source_event }}"
+            },
+            {
+              "fieldId": "raw_payload",
+              "fieldValue": "={{ $json.raw_payload }}"
+            },
+            {
+              "fieldId": "submitted_at",
+              "fieldValue": "={{ $('If').item.json.submitted_at }}"
+            },
+            {
+              "fieldId": "merge_reason",
+              "fieldValue": "={{ $json.merge_reason }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        336,
+        -112
+      ],
+      "id": "736353f1-7c55-4509-ae82-4369f56a2e6d",
+      "name": "Update Canonical Row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "e4WkZrSFRp26TIoU",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "lead_submissions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{$json.id}}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "merged_into",
+              "fieldValue": "={{ $json.merged_into }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        336,
+        96
+      ],
+      "id": "f487f1fd-e5c8-4089-abd4-7459e9e4255c",
+      "name": "Update Child Row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "e4WkZrSFRp26TIoU",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "function normalize(v) {\n  if (!v) return [];\n\n  if (Array.isArray(v)) {\n    return v.flatMap(x => {\n      if (typeof x === \"string\" && x.startsWith(\"[\")) {\n        try { return JSON.parse(x); } catch { return []; }\n      }\n      return x;\n    });\n  }\n\n  if (typeof v === \"string\") return [v];\n\n  return [];\n}\n\nconst canonicalId = $json.canonical_id || $json.id;\n\nif (!canonicalId) {\n  throw new Error(\"Missing canonical_id\");\n}\n\nreturn [{\n  json: {\n    id: canonicalId,              // 👈 THIS IS THE KEY FIX\n    primary_phone: normalize($json.primary_phone),\n    source_platform: normalize($json.source_platform),\n    source_event: normalize($json.source_event),\n    raw_payload: typeof $json.raw_payload === \"string\"\n      ? JSON.parse($json.raw_payload)\n      : $json.raw_payload,\n    merge_reason: \"manual_merge_ui\"\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        96,
+        -80
+      ],
+      "id": "c79de553-7350-41f2-9d0a-21c49151672f",
+      "name": "Code in JavaScript1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Child Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Canonical Row": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Update Canonical Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "91112713-0d74-4d42-a970-c131a106e485",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "27914e949b2b68cd83007e97e60d64be6f952040260ad23ce5cd5be3e0589c09"
+  },
+  "id": "jFcK3PpxyzLinJDO",
+  "tags": []
+}

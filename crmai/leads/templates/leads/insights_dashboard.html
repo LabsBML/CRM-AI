@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Insights Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --muted: #64748b; --border: #e2e8f0; --primary: #2563eb; --radius: 12px; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        /* Toolbar/Filters */
+        .toolbar { display: flex; gap: 15px; margin-bottom: 25px; background: white; padding: 20px; border-radius: var(--radius); border: 1px solid var(--border); align-items: center; }
+        .filters { display: flex; gap: 10px; flex: 1; flex-wrap: wrap; }
+        .filters input { padding: 10px; border: 1px solid var(--border); border-radius: 8px; flex: 1; min-width: 120px; font-family: inherit; }
+        .btn-filter { background: var(--text); color: white; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+        /* KPI Cards */
+        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .kpi-card { background: white; padding: 20px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 8px; }
+        .kpi-val { font-size: 28px; font-weight: 800; color: var(--primary); }
+
+        /* Chart Grid */
+        .chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px; }
+        .chart-card { background: white; padding: 20px; border-radius: var(--radius); border: 1px solid var(--border); min-height: 350px; }
+		.filters select { 
+			padding: 10px; 
+			border: 1px solid var(--border); 
+			border-radius: 8px; 
+			background: white;
+			font-family: inherit;
+			min-width: 150px;
+		}
+        /* Table Section */
+        .table-container { background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 1100px; }
+        th { text-align: left; padding: 14px 20px; background: #fcfcfd; color: var(--muted); font-size: 11px; text-transform: uppercase; border-bottom: 2px solid var(--border); white-space: nowrap; }
+        td { padding: 16px 20px; border-bottom: 1px solid var(--border); font-size: 14px; transition: 0.2s; cursor: pointer; }
+        tr:hover td { background: #f8fafc; color: var(--primary); }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1 style="font-weight: 800; font-size: 24px; margin: 0;">Student Insights Dashboard</h1>
+        <a href="/leads/" style="text-decoration: none; color: var(--primary); font-weight: 700;">&larr; BACK TO LEADS</a>
+    </div>
+
+    <div class="toolbar">
+			<form class="filters" method="GET">
+		<input type="text" name="student_name" placeholder="Filter by Name..." value="{{ filters.student_name }}">
+		<input type="text" name="email" placeholder="Filter by Email..." value="{{ filters.email }}">
+		
+		<select name="grade">
+			<option value="">All Grades</option>
+			<option value="8" {% if filters.grade == '8' %}selected{% endif %}>Grade 8</option>
+			<option value="9" {% if filters.grade == '9' %}selected{% endif %}>Grade 9</option>
+			<option value="10" {% if filters.grade == '10' %}selected{% endif %}>Grade 10</option>
+			<option value="11" {% if filters.grade == '11' %}selected{% endif %}>Grade 11</option>
+			<option value="12" {% if filters.grade == '12' %}selected{% endif %}>Grade 12</option>
+			<option value="College" {% if filters.grade == 'College' %}selected{% endif %}>College/Freshman</option>
+		</select>
+
+		<select name="sort">
+			<option value="newest" {% if filters.sort == 'newest' %}selected{% endif %}>Newest First</option>
+			<option value="oldest" {% if filters.sort == 'oldest' %}selected{% endif %}>Oldest First</option>
+			<option value="name_asc" {% if filters.sort == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+			<option value="name_desc" {% if filters.sort == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+			<option value="rating_high" {% if filters.sort == 'rating_high' %}selected{% endif %}>Highest Rating</option>
+			<option value="grade_high" {% if filters.sort == 'grade_high' %}selected{% endif %}>Grade (High to Low)</option>
+		</select>
+
+		<input type="text" id="citySearch" placeholder="City..." onkeyup="clientSideFilter()">
+		<input type="text" id="stateSearch" placeholder="State..." onkeyup="clientSideFilter()">
+		
+		<button type="submit" class="btn-filter">Apply Filters</button>
+	</form>
+    </div>
+
+    <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-label">Active Students</div><div class="kpi-val">{{ students|length }}+</div></div>
+        <div class="kpi-card"><div class="kpi-label">Avg. Program Rating</div><div class="kpi-val">8.8/10</div></div>
+        <div class="kpi-card"><div class="kpi-label">Induction Completion</div><div class="kpi-val">94%</div></div>
+        <div class="kpi-card"><div class="kpi-label">Projects in Progress</div><div class="kpi-val">12</div></div>
+    </div>
+
+    <div class="chart-grid">
+        <div class="chart-card"><canvas id="gradeChart"></canvas></div>
+        <div class="chart-card"><canvas id="ratingChart"></canvas></div>
+    </div>
+
+    <div class="table-container">
+        <table id="insightsTable">
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Email</th>
+                    <th>AI+ Field</th>
+                    <th>School</th>
+                    <th>Grade Joined</th>
+                    <th>City</th>
+                    <th>State</th>
+                    <th>Rating</th>
+                    <th>Joined</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in students %}
+                <tr onclick="window.location='/leads/profile/{{ s.student_email }}/'">
+                    <td style="font-weight: 700;">{{ s.student_name }}</td>
+                    <td>{{ s.student_email }}</td>
+                    <td>{{ s.project_category|default:"-" }}</td>
+                    <td>{{ s.targetuniversities|default:"-" }}</td>
+                    <td>{{ s.joining_grade|default:s.induction_grade }}</td>
+                    <td>{{ s.city|default:"-" }}</td>
+                    <td>{{ s.state|default:"-" }}</td>
+                    <td>
+                        {% if s.rating_overall_experience %}
+                        <span style="color: #10b981; font-weight: bold;">{{ s.rating_overall_experience }}/5</span>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td style="color: var(--muted); font-size: 12px;">{{ s.display_date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // New function for City and State filtering
+    function clientSideFilter() {
+        const city = document.getElementById('citySearch').value.toLowerCase();
+        const state = document.getElementById('stateSearch').value.toLowerCase();
+        const rows = document.querySelectorAll('#insightsTable tbody tr');
+
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = (text.includes(city) && text.includes(state)) ? '' : 'none';
+        });
+    }
+
+    // Static Chart: Grade Distribution
+    new Chart(document.getElementById('gradeChart'), {
+        type: 'bar',
+        data: {
+            labels: ['9th', '10th', '11th', '12th', 'Freshman'],
+            datasets: [{ label: 'Student Count', data: [15, 22, 35, 28, 10], backgroundColor: '#2563eb', borderRadius: 6 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'Grade Level Distribution' } } }
+    });
+
+    // Static Chart: Satisfaction Over Time
+    new Chart(document.getElementById('ratingChart'), {
+        type: 'line',
+        data: {
+            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
+            datasets: [{ label: 'Mentorship Rating', data: [7.5, 8.0, 8.2, 8.8, 8.7], borderColor: '#10b981', tension: 0.3 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'Mentorship Quality Trend' } } }
+    });
+</script>
+</body>
+</html>

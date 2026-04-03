@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Dashboard | {{ student.student_name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #2563eb; --primary-hover: #1d4ed8; --bg: #f1f5f9; --card: #ffffff; --text: #1e293b; --border: #e2e8f0; --success: #10b981; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 40px; }
+        
+        .dashboard-container { max-width: 1400px; margin: 0 auto; }
+        
+        /* Header Section */
+        .header-strip { background: white; padding: 30px; border-radius: 16px; display: flex; align-items: center; gap: 25px; margin-bottom: 30px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .student-photo { width: 90px; height: 90px; border-radius: 50%; background: #e2e8f0; object-fit: cover; border: 3px solid white; box-shadow: 0 0 0 1px var(--border); }
+        .back-link { text-decoration: none; color: var(--primary); font-size: 13px; font-weight: 700; display: inline-block; margin-bottom: 20px; transition: 0.2s; }
+        .back-link:hover { opacity: 0.8; transform: translateX(-3px); }
+
+        /* Grid System */
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; align-items: start; }
+        .card { background: white; padding: 25px; border-radius: 16px; border: 1px solid var(--border); transition: 0.3s; margin-bottom: 25px; }
+        .card:hover { border-color: #cbd5e1; }
+        .card-title { font-size: 12px; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 20px; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px; }
+
+        /* CRUD Inputs */
+        .field-group { margin-bottom: 18px; }
+        .label { font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 6px; }
+        .input-edit { 
+            width: 100%; border: 1px solid #f1f5f9; padding: 10px 12px; border-radius: 8px;
+            font-size: 14px; transition: 0.2s; background: #f8fafc; color: var(--text);
+            box-sizing: border-box; font-family: inherit;
+        }
+        .input-edit:focus { border-color: var(--primary); background: white; outline: none; box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
+        .textarea-edit { height: 80px; resize: vertical; line-height: 1.5; }
+
+        /* Floating Mailer */
+        .float-btn {
+            position: fixed; bottom: 35px; right: 35px; width: 65px; height: 65px;
+            background: var(--primary); border-radius: 50%; border: none; color: white;
+            box-shadow: 0 15px 35px rgba(37,99,235,0.35); cursor: pointer; display: flex; 
+            align-items: center; justify-content: center; font-size: 28px; transition: 0.3s; z-index: 999;
+        }
+        .float-btn:hover { transform: scale(1.1); background: var(--primary-hover); }
+
+        .mail-modal {
+            position: fixed; bottom: 110px; right: 35px; width: 550px; background: white;
+            border-radius: 20px; box-shadow: 0 25px 60px rgba(15,23,42,0.25); border: 1px solid var(--border);
+            display: none; flex-direction: column; overflow: hidden; z-index: 1000;
+        }
+
+        .mail-header { padding: 20px; background: #f8fafc; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .composer-tools { padding: 10px 20px; background: #fff; border-bottom: 1px solid #f1f5f9; display: flex; gap: 10px; }
+        .tool-btn { background: #f1f5f9; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+
+        .rich-composer { 
+            min-height: 300px; padding: 20px; outline: none; font-size: 14px; overflow-y: auto; 
+            line-height: 1.6; background: #fff; border-bottom: 1px solid #f1f5f9;
+        }
+        .rich-composer:empty:before { content: attr(placeholder); color: #94a3b8; }
+
+        .mail-footer { padding: 20px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center; }
+        .btn-send { background: var(--primary); color: white; border: none; padding: 12px 28px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <a href="/insights/" class="back-link">&larr; BACK TO STUDENT DASHBOARD</a>
+
+    <div class="header-strip">
+        <img src="{{ student.student_photo|default:'https://ui-avatars.com/api/?name='|add:student.student_name }}" class="student-photo">
+        <div>
+            <h1 style="margin:0; font-size: 28px; font-weight: 800;">{{ student.student_name }}</h1>
+            <p style="margin: 8px 0 0 0; color: #64748b; font-weight: 500;">
+                <span style="color: var(--primary); font-weight: bold;">STATUS:</span> Active Student &nbsp;|&nbsp; {{ student.student_email }} &nbsp;|&nbsp; {{ student.midterm_phone }}
+            </p>
+            {% if student.linkedinurl %}
+            <a href="{{ student.linkedinurl }}" target="_blank" style="font-size: 12px; color: #2563eb; text-decoration: none; font-weight: 600;">View LinkedIn Profile &rarr;</a>
+            {% endif %}
+        </div>
+    </div>
+	
+	
+
+    <div class="grid">
+        <div class="column">
+            <div class="card">
+                <div class="card-title">&#128640; Onboarding (Induction)</div>
+                <div class="field-group">
+                    <div class="label">Current Grade</div>
+                    <input class="input-edit" data-table="induction__submissions" data-col="grade" value="{{ student.induction_grade }}" onblur="saveField(this)">
+                </div>
+                <div class="field-group">
+                    <div class="label">Intended Major</div>
+                    <input class="input-edit" data-table="induction__submissions" data-col="major_to_pursue" value="{{ student.major_to_pursue }}" onblur="saveField(this)">
+                </div>
+                <div class="field-group">
+                    <div class="label">Time Zone</div>
+                    <input class="input-edit" data-table="induction__submissions" data-col="time_zone" value="{{ student.induction_time_zone }}" onblur="saveField(this)">
+                </div>
+                <div class="field-group">
+                    <div class="label">Programming Experience</div>
+                    <textarea class="input-edit textarea-edit" data-table="induction__submissions" data-col="programming_exp" onblur="saveField(this)">{{ student.programming_exp }}</textarea>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">&#128269; Initial Goals & Expectations</div>
+                <div class="field-group">
+                    <div class="label">Hoping to Gain</div>
+                    <textarea class="input-edit textarea-edit" data-table="induction__submissions" data-col="what_are_you_hoping_to_gain_from_this_program" onblur="saveField(this)">{{ student.what_are_you_hoping_to_gain_from_this_program }}</textarea>
+                </div>
+                <div class="field-group">
+                    <div class="label">Toughest Project Worked On</div>
+                    <textarea class="input-edit textarea-edit" data-table="induction__submissions" data-col="what_is_the_toughest_project_you_have_worked_so_far" onblur="saveField(this)">{{ student.what_is_the_toughest_project_you_have_worked_so_far }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="column">
+            <div class="card">
+                <div class="card-title">&#128200; Mid-Program Progress</div>
+                <div class="field-group">
+                    <div class="label">Project Description</div>
+                    <textarea class="input-edit textarea-edit" style="height: 120px;" data-table="midterm_progress_evaluation__submissions" data-col="projectdescription" onblur="saveField(this)">{{ student.projectdescription }}</textarea>
+                </div>
+                <div class="field-group">
+                    <div class="label">Program Learnings</div>
+                    <textarea class="input-edit textarea-edit" data-table="midterm_progress_evaluation__submissions" data-col="programlearnings" onblur="saveField(this)">{{ student.programlearnings }}</textarea>
+                </div>
+                <div class="field-group">
+                    <div class="label">School/Club Roles</div>
+                    <input class="input-edit" data-table="midterm_progress_evaluation__submissions" data-col="schoolclubrole" value="{{ student.schoolclubrole }}" onblur="saveField(this)">
+                </div>
+                <div class="field-group">
+                    <div class="label">Target Universities</div>
+                    <input class="input-edit" data-table="midterm_progress_evaluation__submissions" data-col="targetuniversities" value="{{ student.targetuniversities }}" onblur="saveField(this)">
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">&#129504; AI Perception & Growth</div>
+                <div class="field-group">
+                    <div class="label">AI Perception Change</div>
+                    <textarea class="input-edit textarea-edit" data-table="midterm_progress_evaluation__submissions" data-col="aiperceptionchange" onblur="saveField(this)">{{ student.aiperceptionchange }}</textarea>
+                </div>
+                <div class="field-group">
+                    <div class="label">Referral Source</div>
+                    <input class="input-edit" value="{{ student.referralsource }}" readonly style="background: #f1f5f9; color: #94a3b8;">
+                </div>
+            </div>
+        </div>
+
+        <div class="column">
+            <div class="card">
+                <div class="card-title">&#127881; Final Performance</div>
+                <div class="field-group">
+                    <div class="label">Final Project Name</div>
+                    <input class="input-edit" data-table="endterm_progress_evaluation__submissions" data-col="project_name" value="{{ student.project_name }}" onblur="saveField(this)">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="field-group">
+                        <div class="label">Overall Exp (1-5)</div>
+                        <input type="number" class="input-edit" data-table="endterm_progress_evaluation__submissions" data-col="rating_overall_experience" value="{{ student.rating_overall_experience }}" onblur="saveField(this)">
+                    </div>
+                    <div class="field-group">
+                        <div class="label">Mentorship (1-5)</div>
+                        <input type="number" class="input-edit" data-table="endterm_progress_evaluation__submissions" data-col="rating_mentorship_quality" value="{{ student.rating_mentorship_quality }}" onblur="saveField(this)">
+                    </div>
+                </div>
+                <div class="field-group">
+                    <div class="label">Final Testimonial</div>
+                    <textarea class="input-edit textarea-edit" style="height: 100px;" data-table="endterm_progress_evaluation__submissions" data-col="program_testimonial" onblur="saveField(this)">{{ student.program_testimonial }}</textarea>
+                </div>
+                <div class="field-group">
+                    <div class="label">Project Link</div>
+                    <input class="input-edit" style="color: var(--primary); font-weight: 600;" data-table="endterm_progress_evaluation__submissions" data-col="project_link" value="{{ student.project_link }}" onblur="saveField(this)">
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">&#128161; Future Interests</div>
+                <div class="field-group">
+                    <div class="label">Areas to Explore More</div>
+                    <textarea class="input-edit textarea-edit" data-table="endterm_progress_evaluation__submissions" data-col="areas_to_explore_more" onblur="saveField(this)">{{ student.areas_to_explore_more }}</textarea>
+                </div>
+                <div class="field-group">
+                    <div class="label">Most Important Skill Gained</div>
+                    <input class="input-edit" data-table="endterm_progress_evaluation__submissions" data-col="most_important_skill_gained" value="{{ student.most_important_skill_gained }}" onblur="saveField(this)">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button class="float-btn" onclick="toggleMail()">&#9993;</button>
+
+<div id="mailModal" class="mail-modal">
+    <div class="mail-header">
+        <span style="font-weight: 800; font-size: 16px;">Compose Message</span>
+        <button onclick="toggleMail()" style="border:none; background:#f1f5f9; cursor:pointer; width:30px; height:30px; border-radius:50%; font-weight:bold;">&times;</button>
+    </div>
+    
+    <div style="padding: 15px 20px; border-bottom: 1px solid #f1f5f9;">
+        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+            <span style="width: 60px; font-size: 12px; font-weight: 700; color: #94a3b8;">TO</span>
+            <input id="mailTo" type="text" value="{{ student.student_email }}" style="flex:1; border:none; outline:none; font-size:14px; font-weight:600;">
+        </div>
+        <div style="display: flex; align-items: center;">
+            <span style="width: 60px; font-size: 12px; font-weight: 700; color: #94a3b8;">SUB</span>
+            <input id="mailSub" type="text" placeholder="Enter subject..." style="flex:1; border:none; outline:none; font-size:14px; font-weight:600;">
+        </div>
+    </div>
+
+    <div class="composer-tools">
+        <button class="tool-btn" onclick="execCmd('bold')">B</button>
+        <button class="tool-btn" onclick="execCmd('italic')">I</button>
+        <button class="tool-btn" onclick="execCmd('insertUnorderedList')">&bull; List</button>
+    </div>
+
+    <div id="richEditor" class="rich-composer" contenteditable="true" placeholder="Start typing..."></div>
+
+    <div class="mail-footer">
+        <label style="cursor: pointer; color: var(--primary); font-size: 13px; font-weight: 600;">
+            &#128206; Attach Files
+            <input type="file" id="mailFile" style="display:none;">
+        </label>
+        <button class="btn-send" id="sendBtn" onclick="sendQuickMail()">Send Email</button>
+    </div>
+</div>
+
+<script>
+    function toggleMail() {
+        const m = document.getElementById('mailModal');
+        const isVisible = m.style.display === 'flex';
+        m.style.display = isVisible ? 'none' : 'flex';
+    }
+
+    function execCmd(cmd) {
+        document.execCommand(cmd, false, null);
+    }
+
+    function saveField(el) {
+        const table = el.dataset.table;
+        const col = el.dataset.col;
+        const val = el.value;
+        const email = "{{ student.student_email }}";
+
+        if (!email || !table || !col) return;
+
+        fetch("/leads/update-student-data/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+            body: JSON.stringify({ email: email, table: table, column: col, value: val })
+        }).then(r => r.json()).then(data => {
+            if(data.success) {
+                el.style.backgroundColor = "#ecfdf5";
+                setTimeout(() => el.style.backgroundColor = "#f8fafc", 1000);
+            } else {
+                alert("Error saving: " + data.error);
+                el.style.borderColor = "#ef4444";
+            }
+        });
+    }
+
+    function sendQuickMail() {
+        const btn = document.getElementById('sendBtn');
+        btn.disabled = true;
+        btn.innerText = "Sending...";
+
+        const payload = {
+            to: document.getElementById('mailTo').value,
+            subject: document.getElementById('mailSub').value,
+            body: document.getElementById('richEditor').innerHTML,
+            lead_id: "{{ lead_id }}"
+        };
+
+        fetch("/leads/send-zoho-mail/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+            body: JSON.stringify(payload)
+        }).then(r => r.json()).then(data => {
+            if(data.success) {
+                alert("Message sent successfully!");
+                toggleMail();
+                document.getElementById('mailSub').value = "";
+                document.getElementById('richEditor').innerHTML = "";
+            } else {
+                alert("Mail Error: " + data.error);
+            }
+            btn.disabled = false;
+            btn.innerText = "Send Email";
+        });
+    }
+	// 1. Local Cache
+let studentCache = {{ student|safe }};
+console.log("DEBUG: Initial Profile Load Data:", studentCache);
+
+// Simple debug popup function
+function showDebugToast(message, isError = false) {
+    const toast = document.createElement('div');
+    toast.style = `position:fixed; bottom:20px; right:20px; padding:12px 20px; border-radius:8px; z-index:9999; color:white; font-family:sans-serif; background:${isError ? '#ef4444' : '#22c55e'}; box-shadow:0 4px 12px rgba(0,0,0,0.15); transition: opacity 0.5s;`;
+    toast.innerText = message;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
+}
+
+// Initial Alert to confirm data load
+showDebugToast("Profile Loaded for: " + studentCache.student_email);
+
+function saveField(el) {
+    const table = el.getAttribute('data-table');
+    const column = el.getAttribute('data-col');
+    const newValue = el.value;
+    const email = "{{ student.student_email }}";
+
+    console.log(`DEBUG: Attempting Change -> Table: ${table}, Col: ${column}, Value: ${newValue}`);
+    showDebugToast(`Saving to ${table}...`);
+
+    fetch("/leads/update-student-data/", {
+        method: "POST",
+        headers: { 
+            "Content-Type": "application/json", 
+            "X-CSRFToken": "{{ csrf_token }}" 
+        },
+        body: JSON.stringify({ 
+            table: table,
+            column: column,
+            value: newValue,
+            email: email
+        })
+    })
+    .then(async response => {
+        const data = await response.json();
+        if (response.ok && data.success) {
+            console.log("DEBUG: Save Successful", data);
+            showDebugToast("Changes Saved Successfully!");
+            el.style.backgroundColor = "#ecfdf5";
+            setTimeout(() => el.style.backgroundColor = "white", 1000);
+        } else {
+            console.error("DEBUG: Save Failed", data.error);
+            showDebugToast("Error: " + (data.error || "Unknown Error"), true);
+            el.style.borderColor = "#ef4444";
+        }
+    })
+    .catch(err => {
+        console.error("DEBUG: Network Error", err);
+        showDebugToast("Network Error: Check Console", true);
+    });
+}
+</script>
+
+</body>
+</html>
